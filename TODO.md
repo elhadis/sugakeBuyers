@@ -1,0 +1,3 @@
+- [x] Update splash image to fill entire screen in `lib/splashScreen/my_splash_screen.dart`
+- [x] Add fade-in animation to splash image in `lib/splashScreen/my_splash_screen.dart`
+- [x] Mark tasks completed after edit
