@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sugacke/authScreens/auth_screen.dart';
 import 'package:sugacke/mainScreens/home_screen.dart';
 
 class MySplashScreen extends StatefulWidget {
@@ -34,7 +35,7 @@ class _MySplashScreenState extends State<MySplashScreen>
     Future.delayed(const Duration(seconds: 7), () {
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        MaterialPageRoute(builder: (_) => const AuthScreen()),
       );
     });
   }

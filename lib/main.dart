@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sugacke/authScreens/auth_screen.dart';
 import 'package:sugacke/mainScreens/home_screen.dart';
 import 'package:sugacke/splashScreen/my_splash_screen.dart';
 
