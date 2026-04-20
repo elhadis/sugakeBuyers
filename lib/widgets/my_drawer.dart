@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sugacke/global/global.dart';
 
 class MyDrawer extends StatefulWidget {
   const MyDrawer({super.key});
@@ -8,6 +9,16 @@ class MyDrawer extends StatefulWidget {
 }
 
 class _MyDrawerState extends State<MyDrawer> {
+  String userName = "";
+  String userPhotoUrl = "";
+
+  @override
+  void initState() {
+    super.initState();
+    userName = sharedPreferences?.getString("name") ?? "Guest";
+    userPhotoUrl = sharedPreferences?.getString("photoUrl") ?? "";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -22,18 +33,26 @@ class _MyDrawerState extends State<MyDrawer> {
                 SizedBox(
                   height: 130,
                   width: 130,
-                  child: const CircleAvatar(
+                  child: CircleAvatar(
                     radius: 52,
-                    backgroundImage: NetworkImage(
-                      "https://img.freepik.com/free-photo/black-friday-elements-assortment_23-2149074075.jpg",
-                    ),
+                    backgroundColor: Colors.white,
+                    backgroundImage: userPhotoUrl.isNotEmpty
+                        ? NetworkImage(userPhotoUrl)
+                        : null,
+                    child: userPhotoUrl.isEmpty
+                        ? const Icon(
+                            Icons.person,
+                            size: 70,
+                            color: Colors.orangeAccent,
+                          )
+                        : null,
                   ),
                 ),
                 const SizedBox(height: 12),
 
-                const Text(
-                  "uername",
-                  style: TextStyle(
+                Text(
+                  userName,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,

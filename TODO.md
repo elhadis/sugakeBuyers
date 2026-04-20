@@ -1,5 +1,8 @@
-- [x] Redesign `AuthScreen` with a polished, modern UI
-- [x] Add data collection form fields (name, email, phone, address, password)
-- [x] Add validation and submit interaction
-- [x] Improve spacing, typography, colors, and component styling
-- [x] Mark tasks complete
+# Firebase Android Fix TODO
+
+- [x] Check Android Firebase config presence (`android/app/google-services.json`) -> MISSING
+- [x] Review Gradle Firebase plugin setup in:
+  - [x] `android/settings.gradle.kts`
+  - [x] `android/build.gradle.kts`
+  - [x] `android/app/build.gradle.kts`
+- [ ] Regenerate `lib/firebase_options.dart` with Android support

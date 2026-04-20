@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "96904726096",
+    "project_id": "sugackselers",
+    "storage_bucket": "sugackselers.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:96904726096:android:ad9199e1daa3c1ee7e7355",
+        "android_client_info": {
+          "package_name": "com.ragabaat.sugacke"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDudlPj1PV60LFq94818Nu2S0Qg0SfxoYM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
