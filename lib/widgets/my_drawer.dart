@@ -1,5 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sugacke/authScreens/my_auth.dart';
 import 'package:sugacke/global/global.dart';
+import 'package:sugacke/mainScreens/my_hmoe_screen.dart';
 
 class MyDrawer extends StatefulWidget {
   const MyDrawer({super.key});
@@ -101,15 +104,19 @@ class _MyDrawerState extends State<MyDrawer> {
                     "History",
                     style: TextStyle(color: Colors.white),
                   ),
-                  onTap: () {},
+                  onTap: () {
+                    // MaterialPageRoute(builder: (c) => const MyHmoeScreen());
+                  },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.search, color: Colors.white),
+                  leading: const Icon(Icons.backpack, color: Colors.white),
                   title: const Text(
-                    "Search",
+                    "back to items Screen",
                     style: TextStyle(color: Colors.white),
                   ),
-                  onTap: () {},
+                  onTap: () {
+                    MaterialPageRoute(builder: (c) => const MyHmoeScreen());
+                  },
                 ),
                 ListTile(
                   leading: const Icon(Icons.logout, color: Colors.white),
@@ -117,7 +124,13 @@ class _MyDrawerState extends State<MyDrawer> {
                     "Logout",
                     style: TextStyle(color: Colors.white),
                   ),
-                  onTap: () {},
+                  onTap: () {
+                    FirebaseAuth.instance.signOut();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (c) => const MyAuth()),
+                    );
+                  },
                 ),
               ],
             ),
