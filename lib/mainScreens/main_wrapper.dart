@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:sugacke/global/app_ui_tokens.dart';
+import 'package:sugacke/l10n/translations.dart';
 import 'package:sugacke/mainScreens/brands_screen.dart';
 import 'package:sugacke/mainScreens/featured_screen.dart';
 import 'package:sugacke/mainScreens/my_hmoe_screen.dart';
@@ -29,7 +31,7 @@ class _MainWrapperState extends State<MainWrapper> {
         );
   }
 
-  Widget _buildStoresTab() {
+  Widget _buildStoresTab(String noStoresText) {
     final size = MediaQuery.of(context).size;
 
     return StreamBuilder<List<Store>>(
@@ -41,7 +43,7 @@ class _MainWrapperState extends State<MainWrapper> {
 
         final stores = snapshot.data ?? [];
         if (stores.isEmpty) {
-          return const Center(child: Text('No stores found'));
+          return Center(child: Text(noStoresText));
         }
 
         return ListView.builder(
@@ -69,21 +71,45 @@ class _MainWrapperState extends State<MainWrapper> {
     );
   }
 
+  Widget _buildResponsivePage(Widget child) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        if (width <= AppUiTokens.maxContentWidth) return child;
+        return Center(
+          child: SizedBox(width: AppUiTokens.maxContentWidth, child: child),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
+    final homeText = AppTranslations.text(context, 'home');
+    final brandsText = AppTranslations.text(context, 'categories');
+    final storesText = AppTranslations.text(context, 'stores');
+    final featuredText = AppTranslations.text(context, 'featured');
+    final noProductsFoundText = AppTranslations.text(
+      context,
+      'no_products_found',
+    );
+
+    final tabTitles = [homeText, brandsText, storesText, featuredText];
+
     final pages = [
       const MyHmoeScreen(),
       const BrandsScreen(),
-      _buildStoresTab(),
+      _buildStoresTab(noProductsFoundText),
       const FeaturedScreen(),
     ];
 
     return Scaffold(
-      body: SafeArea(child: pages[_selectedIndex]),
+      appBar: AppBar(title: Text(tabTitles[_selectedIndex]), centerTitle: true),
+      body: SafeArea(child: _buildResponsivePage(pages[_selectedIndex])),
       bottomNavigationBar: Container(
-        color: Colors.white,
+        color: AppUiTokens.cardBackground,
         padding: EdgeInsets.symmetric(
           horizontal: size.width * 0.03,
           vertical: size.height * 0.01,
@@ -103,13 +129,13 @@ class _MainWrapperState extends State<MainWrapper> {
             vertical: size.height * 0.012,
           ),
           gap: size.width * 0.015,
-          tabs: const [
-            GButton(icon: Icons.home_outlined, text: 'Home'),
-            GButton(icon: Icons.category_outlined, text: 'Brands'),
-            GButton(icon: Icons.store_outlined, text: 'Stores'),
+          tabs: [
+            GButton(icon: Icons.home_outlined, text: homeText),
+            GButton(icon: Icons.category_outlined, text: brandsText),
+            GButton(icon: Icons.store_outlined, text: storesText),
             GButton(
               icon: Icons.local_fire_department_outlined,
-              text: 'Featured',
+              text: featuredText,
             ),
           ],
         ),

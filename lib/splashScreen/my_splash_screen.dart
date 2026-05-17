@@ -1,9 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:sugacke/authScreens/auth_screen.dart';
 import 'package:sugacke/authScreens/my_auth.dart';
-import 'package:sugacke/mainScreens/home_screen.dart';
 import 'package:sugacke/mainScreens/my_hmoe_screen.dart';
+import 'package:sugacke/services/user_session_service.dart';
 
 class MySplashScreen extends StatefulWidget {
   const MySplashScreen({super.key});
@@ -35,21 +34,25 @@ class _MySplashScreenState extends State<MySplashScreen>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _controller.repeat(reverse: true);
 
-    Future.delayed(const Duration(seconds: 5), () {
+    Future.delayed(const Duration(seconds: 5), () async {
       if (!mounted) return;
-      if(FirebaseAuth.instance.currentUser != null) {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        try {
+          await UserSessionService.loadSellerIntoSharedPreferences(user);
+        } catch (_) {
+          // Drawer still shows Guest until next login if Firestore fails.
+        }
+        if (!mounted) return;
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const MyHmoeScreen()),
         );
+      } else {
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const MyAuth()),
+        );
       }
-
-        else {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const MyAuth()),
-          );
-        }
-      
-      
     });
   }
 

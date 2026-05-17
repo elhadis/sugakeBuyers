@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sugacke/global/global.dart';
+import 'package:sugacke/l10n/translations.dart';
 import 'package:sugacke/mainScreens/home_screen.dart';
 
 class UploadBrandsScreen extends StatefulWidget {
@@ -102,10 +103,12 @@ class _UploadBrandsScreenState extends State<UploadBrandsScreen> {
   Future<void> validateUploadForm() async {
     if (!isFormValid) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select image and fill all fields'),
+        SnackBar(
+          content: Text(
+            AppTranslations.text(context, 'select_image_fill_fields'),
+          ),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         ),
       );
       return;
@@ -148,7 +151,11 @@ class _UploadBrandsScreenState extends State<UploadBrandsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Upload failed. Please check network and retry.\n$e',
+            AppTranslations.textWithParams(
+              context,
+              'upload_failed_retry',
+              {'error': e.toString()},
+            ),
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
           ),
@@ -206,7 +213,7 @@ class _UploadBrandsScreenState extends State<UploadBrandsScreen> {
         ],
         backgroundColor: Colors.orangeAccent,
         elevation: 0,
-        title: const Text('Upload New Brands'),
+        title: Text(AppTranslations.text(context, 'upload_new_brands')),
         centerTitle: true,
       ),
       backgroundColor: Colors.orangeAccent,
@@ -244,8 +251,8 @@ class _UploadBrandsScreenState extends State<UploadBrandsScreen> {
                       controller: brandInfoTextEditingController,
                       style: const TextStyle(color: Colors.white),
                       onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
-                        hintText: 'Brand info',
+                      decoration: InputDecoration(
+                        hintText: AppTranslations.text(context, 'brand_info'),
                         border: InputBorder.none,
                         hintStyle: TextStyle(color: Colors.white),
                         enabledBorder: UnderlineInputBorder(
@@ -268,8 +275,8 @@ class _UploadBrandsScreenState extends State<UploadBrandsScreen> {
                       controller: brandTitleTextEditingController,
                       style: const TextStyle(color: Colors.white),
                       onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
-                        hintText: 'Brand title',
+                      decoration: InputDecoration(
+                        hintText: AppTranslations.text(context, 'brand_title'),
                         border: InputBorder.none,
                         hintStyle: TextStyle(color: Colors.white),
                         enabledBorder: UnderlineInputBorder(
@@ -289,7 +296,7 @@ class _UploadBrandsScreenState extends State<UploadBrandsScreen> {
                           ? null
                           : validateUploadForm,
                       icon: const Icon(Icons.cloud_upload),
-                      label: const Text('Upload Brand'),
+                      label: Text(AppTranslations.text(context, 'upload_brand')),
                     ),
                   ),
                 ],
@@ -307,7 +314,7 @@ class _UploadBrandsScreenState extends State<UploadBrandsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.orangeAccent,
         elevation: 0,
-        title: const Text('Add New Brands'),
+        title: Text(AppTranslations.text(context, 'add_new_brands')),
         centerTitle: true,
       ),
       backgroundColor: Colors.orangeAccent,
@@ -339,7 +346,7 @@ class _UploadBrandsScreenState extends State<UploadBrandsScreen> {
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
-                    child: const Text('Add New Brands'),
+                    child: Text(AppTranslations.text(context, 'add_new_brands')),
                   ),
                 ],
               ),
@@ -356,22 +363,22 @@ class _UploadBrandsScreenState extends State<UploadBrandsScreen> {
       context: context,
       builder: (context) {
         return SimpleDialog(
-          title: const Text(
-            'Select brand Image From',
+          title: Text(
+            AppTranslations.text(context, 'select_brand_image_from'),
             style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
           ),
           children: [
             SimpleDialogOption(
               onPressed: getImageFromCamera,
-              child: const Text(
-                'Capture image with Camera',
+              child: Text(
+                AppTranslations.text(context, 'capture_image_camera'),
                 style: TextStyle(color: Colors.black),
               ),
             ),
             SimpleDialogOption(
               onPressed: getImageFromGallery,
-              child: const Text(
-                'Select image from Gallery',
+              child: Text(
+                AppTranslations.text(context, 'select_image_gallery'),
                 style: TextStyle(color: Colors.orange),
               ),
             ),
@@ -379,7 +386,10 @@ class _UploadBrandsScreenState extends State<UploadBrandsScreen> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+              child: Text(
+                AppTranslations.text(context, 'cancel'),
+                style: const TextStyle(color: Colors.red),
+              ),
             ),
           ],
         );

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:sugacke/l10n/translations.dart';
 import 'package:sugacke/mainScreens/brand_items_screen.dart';
 import 'package:sugacke/models/brans.dart';
 import 'package:sugacke/models/store.dart';
@@ -27,7 +28,7 @@ class StoreBrandsScreen extends StatelessWidget {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      appBar: AppBar(title: Text('${store.name} Brands')),
+      appBar: AppBar(title: Text('${store.name} ${AppTranslations.text(context, 'brands')}')),
       body: StreamBuilder<List<Brands>>(
         stream: _storeBrandsStream(),
         builder: (context, snapshot) {
@@ -37,7 +38,9 @@ class StoreBrandsScreen extends StatelessWidget {
 
           final brands = snapshot.data ?? [];
           if (brands.isEmpty) {
-            return const Center(child: Text('No brands found for this store'));
+            return Center(
+              child: Text(AppTranslations.text(context, 'no_brands_for_store')),
+            );
           }
 
           return GridView.builder(
@@ -59,7 +62,8 @@ class StoreBrandsScreen extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (_) => BrandItemsScreen(
                         brandId: brand.brandId ?? '',
-                        brandTitle: brand.brandTitle ?? 'Brand Items',
+                        brandTitle: brand.brandTitle ??
+                            AppTranslations.text(context, 'brand_items'),
                       ),
                     ),
                   );

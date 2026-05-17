@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:sugacke/l10n/translations.dart';
 import 'package:sugacke/mainScreens/item_details_screen.dart';
 import 'package:sugacke/models/store.dart';
 
@@ -75,7 +76,9 @@ class BrandItemsScreen extends StatelessWidget {
 
           final items = snapshot.data ?? [];
           if (items.isEmpty) {
-            return const Center(child: Text('No items found for this brand'));
+            return Center(
+              child: Text(AppTranslations.text(context, 'no_items_for_brand')),
+            );
           }
 
           return GridView.builder(

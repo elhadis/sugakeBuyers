@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:sugacke/l10n/translations.dart';
 import 'package:sugacke/models/store.dart';
 
 class StoreDetailsScreen extends StatefulWidget {
@@ -172,7 +173,9 @@ class _StoreDetailsScreenState extends State<StoreDetailsScreen> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
-                item.brandName.isEmpty ? 'Brand' : item.brandName,
+                item.brandName.isEmpty
+                    ? AppTranslations.text(context, 'brands')
+                    : item.brandName,
                 style: TextStyle(
                   color: Colors.orange.shade700,
                   fontSize: 11,
@@ -205,7 +208,11 @@ class _StoreDetailsScreenState extends State<StoreDetailsScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (brands.isEmpty) {
-                  return const Center(child: Text('No brands for this store'));
+                  return Center(
+                    child: Text(
+                      AppTranslations.text(context, 'no_brands_for_store'),
+                    ),
+                  );
                 }
                 return ListView.builder(
                   scrollDirection: Axis.horizontal,
@@ -224,7 +231,9 @@ class _StoreDetailsScreenState extends State<StoreDetailsScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (items.isEmpty) {
-                  return const Center(child: Text('No items found'));
+                  return Center(
+                    child: Text(AppTranslations.text(context, 'no_items_found')),
+                  );
                 }
                 return GridView.builder(
                   padding: const EdgeInsets.all(10),

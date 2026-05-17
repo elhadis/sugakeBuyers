@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sugacke/global/global.dart';
+import 'package:sugacke/l10n/translations.dart';
 import 'package:sugacke/mainScreens/home_screen.dart';
 import 'package:sugacke/models/brans.dart';
 
@@ -99,8 +100,8 @@ class _UploadItemsScreenState extends State<UploadItemsScreen> {
         isFeatured = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Maximum of 4 featured items allowed.'),
+        SnackBar(
+          content: Text(AppTranslations.text(context, 'max_featured_items')),
           backgroundColor: Colors.red,
         ),
       );
@@ -186,10 +187,12 @@ class _UploadItemsScreenState extends State<UploadItemsScreen> {
   Future<void> validateUploadForm() async {
     if (!isFormValid) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select image and fill all fields'),
+        SnackBar(
+          content: Text(
+            AppTranslations.text(context, 'select_image_fill_fields'),
+          ),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         ),
       );
       return;
@@ -232,7 +235,11 @@ class _UploadItemsScreenState extends State<UploadItemsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Upload failed. Please check network and retry.\n$e',
+            AppTranslations.textWithParams(
+              context,
+              'upload_failed_retry',
+              {'error': e.toString()},
+            ),
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
           ),
@@ -290,7 +297,7 @@ class _UploadItemsScreenState extends State<UploadItemsScreen> {
         ],
         backgroundColor: Colors.orangeAccent,
         elevation: 0,
-        title: const Text('Upload New Item'),
+        title: Text(AppTranslations.text(context, 'upload_new_item')),
         centerTitle: true,
       ),
       backgroundColor: Colors.orangeAccent,
@@ -325,8 +332,11 @@ class _UploadItemsScreenState extends State<UploadItemsScreen> {
                       controller: itemDescriptionTextEditingController,
                       style: const TextStyle(color: Colors.white),
                       onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
-                        hintText: 'Item description',
+                      decoration: InputDecoration(
+                        hintText: AppTranslations.text(
+                          context,
+                          'item_description',
+                        ),
                         border: InputBorder.none,
                         hintStyle: TextStyle(color: Colors.white),
                         enabledBorder: UnderlineInputBorder(
@@ -349,8 +359,8 @@ class _UploadItemsScreenState extends State<UploadItemsScreen> {
                       controller: itemTitleTextEditingController,
                       style: const TextStyle(color: Colors.white),
                       onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
-                        hintText: 'itemtitle',
+                      decoration: InputDecoration(
+                        hintText: AppTranslations.text(context, 'item_title'),
                         border: InputBorder.none,
                         hintStyle: TextStyle(color: Colors.white),
                         enabledBorder: UnderlineInputBorder(
@@ -369,8 +379,8 @@ class _UploadItemsScreenState extends State<UploadItemsScreen> {
                       controller: itemPriceTextEditingController,
                       style: const TextStyle(color: Colors.white),
                       onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
-                        hintText: 'item Price',
+                      decoration: InputDecoration(
+                        hintText: AppTranslations.text(context, 'item_price'),
                         border: InputBorder.none,
                         hintStyle: TextStyle(color: Colors.white),
                         enabledBorder: UnderlineInputBorder(
@@ -401,15 +411,15 @@ class _UploadItemsScreenState extends State<UploadItemsScreen> {
                       activeThumbColor: Colors.deepOrange,
                       value: isFeatured,
                       onChanged: upLoading ? null : _onFeaturedToggleChanged,
-                      title: const Text(
-                        'Promotion Card',
+                      title: Text(
+                        AppTranslations.text(context, 'promotion_card'),
                         style: TextStyle(
                           color: Colors.deepOrange,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      subtitle: const Text(
-                        'Mark this product as featured (max 4)',
+                      subtitle: Text(
+                        AppTranslations.text(context, 'mark_product_featured'),
                         style: TextStyle(color: Colors.black87),
                       ),
                     ),
@@ -423,7 +433,7 @@ class _UploadItemsScreenState extends State<UploadItemsScreen> {
                           ? null
                           : validateUploadForm,
                       icon: const Icon(Icons.cloud_upload),
-                      label: const Text('Upload Item'),
+                      label: Text(AppTranslations.text(context, 'upload_item')),
                     ),
                   ),
                 ],
@@ -441,7 +451,7 @@ class _UploadItemsScreenState extends State<UploadItemsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.orangeAccent,
         elevation: 0,
-        title: const Text('Add New Items'),
+        title: Text(AppTranslations.text(context, 'add_new_items')),
         centerTitle: true,
       ),
       backgroundColor: Colors.orangeAccent,
@@ -473,7 +483,7 @@ class _UploadItemsScreenState extends State<UploadItemsScreen> {
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
-                    child: const Text('Add New Item'),
+                    child: Text(AppTranslations.text(context, 'add_new_item')),
                   ),
                 ],
               ),
@@ -490,22 +500,22 @@ class _UploadItemsScreenState extends State<UploadItemsScreen> {
       context: context,
       builder: (context) {
         return SimpleDialog(
-          title: const Text(
-            'Select brand Image From',
+          title: Text(
+            AppTranslations.text(context, 'select_brand_image_from'),
             style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
           ),
           children: [
             SimpleDialogOption(
               onPressed: getImageFromCamera,
-              child: const Text(
-                'Capture image with Camera',
+              child: Text(
+                AppTranslations.text(context, 'capture_image_camera'),
                 style: TextStyle(color: Colors.black),
               ),
             ),
             SimpleDialogOption(
               onPressed: getImageFromGallery,
-              child: const Text(
-                'Select image from Gallery',
+              child: Text(
+                AppTranslations.text(context, 'select_image_gallery'),
                 style: TextStyle(color: Colors.orange),
               ),
             ),
@@ -513,7 +523,10 @@ class _UploadItemsScreenState extends State<UploadItemsScreen> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+              child: Text(
+                AppTranslations.text(context, 'cancel'),
+                style: const TextStyle(color: Colors.red),
+              ),
             ),
           ],
         );

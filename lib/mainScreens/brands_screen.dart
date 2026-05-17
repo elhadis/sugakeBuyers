@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:sugacke/global/app_ui_tokens.dart';
+import 'package:sugacke/l10n/translations.dart';
 import 'package:sugacke/mainScreens/item_details_screen.dart';
 import 'package:sugacke/models/brans.dart';
 import 'package:sugacke/models/store.dart';
@@ -32,52 +34,75 @@ class _BrandsScreenState extends State<BrandsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final contentWidth = width > AppUiTokens.maxContentWidth
+            ? AppUiTokens.maxContentWidth
+            : width;
+        final crossAxisCount = contentWidth > 660 ? 3 : 2;
+        final spacing = contentWidth < 380 ? 8.0 : 12.0;
 
-    return FutureBuilder<List<Brands>>(
-      future: _loadAllBrands(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const ProductShimmerWidget();
-        }
+        return Center(
+          child: SizedBox(
+            width: contentWidth,
+            child: FutureBuilder<List<Brands>>(
+              future: _loadAllBrands(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const ProductShimmerWidget();
+                }
 
-        if (snapshot.hasError) {
-          return Center(
-            child: Text('Failed to load brands: ${snapshot.error}'),
-          );
-        }
-
-        final brands = snapshot.data ?? [];
-        if (brands.isEmpty) {
-          return const Center(child: Text('No brands found'));
-        }
-
-        return GridView.builder(
-          padding: EdgeInsets.all(size.width * 0.03),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: size.width > 800 ? 4 : (size.width > 600 ? 3 : 2),
-            mainAxisSpacing: size.width * 0.03,
-            crossAxisSpacing: size.width * 0.03,
-            childAspectRatio: 0.8,
-          ),
-          itemCount: brands.length,
-          itemBuilder: (context, index) {
-            final brand = brands[index];
-            return BrandCardWidget(
-              brand: brand,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BrandItemsByBrandScreen(
-                      brandId: brand.brandId ?? '',
-                      brandTitle: brand.brandTitle ?? 'Brand Items',
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      AppTranslations.textWithParams(
+                        context,
+                        'failed_load_brands',
+                        {'error': snapshot.error.toString()},
+                      ),
                     ),
+                  );
+                }
+
+                final brands = snapshot.data ?? [];
+                if (brands.isEmpty) {
+                  return Center(
+                    child: Text(AppTranslations.text(context, 'no_brands_found')),
+                  );
+                }
+
+                return GridView.builder(
+                  padding: EdgeInsets.all(spacing),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    mainAxisSpacing: spacing,
+                    crossAxisSpacing: spacing,
+                    childAspectRatio: 0.8,
                   ),
+                  itemCount: brands.length,
+                  itemBuilder: (context, index) {
+                    final brand = brands[index];
+                    return BrandCardWidget(
+                      brand: brand,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => BrandItemsByBrandScreen(
+                              brandId: brand.brandId ?? '',
+                              brandTitle: brand.brandTitle ??
+                                  AppTranslations.text(context, 'brand_items'),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
                 );
               },
-            );
-          },
+            ),
+          ),
         );
       },
     );
@@ -109,105 +134,115 @@ class BrandItemsByBrandScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final contentWidth = size.width > AppUiTokens.maxContentWidth
+        ? AppUiTokens.maxContentWidth
+        : size.width;
+    final crossAxisCount = contentWidth > 660 ? 3 : 2;
+    final spacing = contentWidth < 380 ? 8.0 : 12.0;
 
     return Scaffold(
       appBar: AppBar(title: Text(brandTitle)),
-      body: StreamBuilder<List<StoreItem>>(
-        stream: _itemsByBrandStream(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const ProductShimmerWidget();
-          }
+      body: Center(
+        child: SizedBox(
+          width: contentWidth,
+          child: StreamBuilder<List<StoreItem>>(
+            stream: _itemsByBrandStream(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const ProductShimmerWidget();
+              }
 
-          final items = snapshot.data ?? [];
-          if (items.isEmpty) {
-            return const Center(child: Text('No items found for this brand.'));
-          }
-
-          return GridView.builder(
-            padding: EdgeInsets.all(size.width * 0.03),
-            itemCount: items.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: size.width > 800 ? 4 : (size.width > 600 ? 3 : 2),
-              mainAxisSpacing: size.width * 0.03,
-              crossAxisSpacing: size.width * 0.03,
-              childAspectRatio: 0.66,
-            ),
-            itemBuilder: (context, index) {
-              final item = items[index];
-              final heroTag = 'hero_product_${item.itemId}';
-
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ItemDetailsScreen(item: item),
-                    ),
-                  );
-                },
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(size.width * 0.03),
+              final items = snapshot.data ?? [];
+              if (items.isEmpty) {
+                return Center(
+                  child: Text(
+                    AppTranslations.text(context, 'no_items_for_brand_dot'),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Hero(
-                          tag: heroTag,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(size.width * 0.03),
-                            ),
-                            child: CachedNetworkImage(
-                              imageUrl: item.imageUrl,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              placeholder: (_, __) =>
-                                  Container(color: Colors.grey.shade300),
-                              errorWidget: (_, __, ___) => const Icon(
-                                Icons.image_not_supported,
-                                color: Colors.grey,
+                );
+              }
+
+              return GridView.builder(
+                padding: EdgeInsets.all(spacing),
+                itemCount: items.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  mainAxisSpacing: spacing,
+                  crossAxisSpacing: spacing,
+                  childAspectRatio: 0.68,
+                ),
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  final heroTag = 'hero_product_${item.itemId}';
+
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ItemDetailsScreen(item: item),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Hero(
+                              tag: heroTag,
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(14),
+                                ),
+                                child: CachedNetworkImage(
+                                  imageUrl: item.imageUrl,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) =>
+                                      Container(color: Colors.grey.shade300),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(
+                                        Icons.image_not_supported,
+                                        color: Colors.grey,
+                                      ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(size.width * 0.02),
-                        child: Text(
-                          item.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: size.width * 0.034,
-                            fontWeight: FontWeight.w700,
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
+                            child: Text(
+                              item.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: contentWidth < 380 ? 12.5 : 13.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          size.width * 0.02,
-                          0,
-                          size.width * 0.02,
-                          size.width * 0.02,
-                        ),
-                        child: Text(
-                          '${item.currency.isEmpty ? '₪' : item.currency} ${item.itemPrice}',
-                          style: TextStyle(
-                            fontSize: size.width * 0.032,
-                            fontWeight: FontWeight.w600,
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+                            child: Text(
+                              '${item.currency.isEmpty ? '₪' : item.currency} ${item.itemPrice}',
+                              style: TextStyle(
+                                fontSize: contentWidth < 380 ? 12 : 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               );
             },
-          );
-        },
+          ),
+        ),
       ),
     );
   }

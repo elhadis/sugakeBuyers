@@ -4,10 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sugacke/authScreens/my_auth.dart';
+import 'package:sugacke/global/app_ui_tokens.dart';
+import 'package:sugacke/global/country_currency_config.dart';
+import 'package:sugacke/global/global.dart';
+import 'package:sugacke/l10n/translations.dart';
 import 'package:sugacke/models/store.dart';
+import 'package:sugacke/services/whatsapp_tracking_service.dart';
 import 'package:sugacke/widgets/featured_slider_widget.dart';
 import 'package:sugacke/widgets/product_shimmer_widget.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class MyHmoeScreen extends StatefulWidget {
   const MyHmoeScreen({super.key});
@@ -17,23 +21,49 @@ class MyHmoeScreen extends StatefulWidget {
 }
 
 class _MyHmoeScreenState extends State<MyHmoeScreen> {
+  static const Map<String, String> _countryTranslationKeyByName = {
+    'Saudi Arabia': 'country_saudi_arabia',
+    'UAE': 'country_uae',
+    'Qatar': 'country_qatar',
+    'Kuwait': 'country_kuwait',
+    'Turkey': 'country_turkey',
+    'Egypt': 'country_egypt',
+    'Sudan': 'country_sudan',
+    'Morocco': 'country_morocco',
+    'Kenya': 'country_kenya',
+    'Uganda': 'country_uganda',
+    'Ethiopia': 'country_ethiopia',
+    'Rwanda': 'country_rwanda',
+    'UK': 'country_uk',
+    'France': 'country_france',
+    'Germany': 'country_germany',
+    'Netherlands': 'country_netherlands',
+    'Italy': 'country_italy',
+    'Spain': 'country_spain',
+    'USA': 'country_usa',
+    'Canada': 'country_canada',
+    'India': 'country_india',
+  };
+
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   bool _hasSavedUser = false;
+  int _middleSectionVisibleCount = 2;
   String? _selectedCategory;
-  String? _selectedQuickFilter;
   final stt.SpeechToText _speechToText = stt.SpeechToText();
   bool _isListening = false;
+  late final List<String> _countryNames;
+  String? _selectedCountry;
+  late String _selectedCurrency;
 
   final List<Map<String, dynamic>> _categories = const [
-    {'name': 'Men\'s Shoes', 'icon': Icons.directions_run},
-    {'name': 'Women & Home World', 'icon': Icons.woman},
-    {'name': 'Electronics', 'icon': Icons.smartphone},
-    {'name': 'Kids', 'icon': Icons.child_care},
-    {'name': 'Supermarket', 'icon': Icons.shopping_cart},
+    {'id': 'category_mens_shoes', 'icon': Icons.directions_run},
+    {'id': 'category_women_home_world', 'icon': Icons.woman},
+    {'id': 'category_electronics', 'icon': Icons.smartphone},
+    {'id': 'category_kids', 'icon': Icons.child_care},
+    {'id': 'category_supermarket', 'icon': Icons.shopping_cart},
+    {'id': 'category_services', 'icon': Icons.miscellaneous_services},
   ];
-
-  final List<String> _quickFilters = const ['New', 'Top Rated'];
 
   @override
   void initState() {
@@ -44,6 +74,16 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
         _searchQuery = _searchController.text.trim().toLowerCase();
       });
     });
+    _countryNames = getCountryNamesSorted();
+    final savedCountry = sharedPreferences?.getString('country');
+    _selectedCountry = null;
+    final fallbackCountry =
+        (savedCountry != null && _countryNames.contains(savedCountry))
+        ? savedCountry
+        : (_countryNames.contains('Saudi Arabia')
+              ? 'Saudi Arabia'
+              : _countryNames.first);
+    _selectedCurrency = currencyCodeForCountry(fallbackCountry);
     _loadSavedUser();
   }
 
@@ -68,14 +108,19 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
   }
 
   Stream<List<StoreItem>> _itemsStream() {
-    return FirebaseFirestore.instance
-        .collection('items')
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => StoreItem.fromJson(doc.data(), docId: doc.id))
-              .toList(),
-        );
+    Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection(
+      'items',
+    );
+
+    if (_selectedCountry != null) {
+      query = query.where('currency', isEqualTo: _selectedCurrency);
+    }
+
+    return query.snapshots().map(
+      (snapshot) => snapshot.docs
+          .map((doc) => StoreItem.fromJson(doc.data(), docId: doc.id))
+          .toList(),
+    );
   }
 
   Stream<List<StoreItem>> _featuredItemsStream() {
@@ -88,6 +133,39 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
               .map((doc) => StoreItem.fromJson(doc.data(), docId: doc.id))
               .toList(),
         );
+  }
+
+  Widget _buildSectionHeader({
+    required String title,
+    required IconData icon,
+    required Color color,
+    bool alignRight = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 1),
+      child: Row(
+        mainAxisAlignment: alignRight
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: color.withAlpha(28),
+              borderRadius: BorderRadius.circular(AppUiTokens.cardRadius - 5),
+            ),
+            child: Icon(icon, color: color, size: 14),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            title,
+            textAlign: alignRight ? TextAlign.right : TextAlign.left,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+    );
   }
 
   bool get _shouldShowFeaturedSlider =>
@@ -131,9 +209,11 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
           });
         }
       },
-      listenMode: stt.ListenMode.search,
-      cancelOnError: true,
-      partialResults: true,
+      listenOptions: stt.SpeechListenOptions(
+        listenMode: stt.ListenMode.search,
+        cancelOnError: true,
+        partialResults: true,
+      ),
     );
   }
 
@@ -141,14 +221,14 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
     return Container(
       height: 44,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        color: AppUiTokens.cardBackground,
+        borderRadius: BorderRadius.circular(AppUiTokens.chipRadius + 4),
       ),
       child: TextField(
         controller: _searchController,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
-          hintText: 'Search Any products',
+          hintText: AppTranslations.text(context, 'search_products'),
           prefixIcon: const Icon(Icons.search, color: Colors.black54),
           suffixIcon: Row(
             mainAxisSize: MainAxisSize.min,
@@ -175,47 +255,18 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
     );
   }
 
-  Widget _buildQuickFilters() {
-    return SizedBox(
-      height: 44,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        itemCount: _quickFilters.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final filter = _quickFilters[index];
-          final selected = _selectedQuickFilter == filter;
-          return ChoiceChip(
-            label: Text(filter),
-            selected: selected,
-            onSelected: (_) {
-              setState(() {
-                _selectedQuickFilter = selected ? null : filter;
-              });
-            },
-            selectedColor: Colors.orange.shade200,
-            labelStyle: TextStyle(
-              color: selected ? Colors.orange.shade900 : Colors.black87,
-              fontWeight: FontWeight.w600,
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   Future<void> _openWhatsApp({
     required String phone,
     required String itemTitle,
+    required String storeName,
   }) async {
     if (phone.trim().isEmpty) return;
-    final normalizedPhone = phone.replaceAll(RegExp(r'\s+'), '');
-    final message = Uri.encodeComponent(
-      "Hello, I'm interested in your product: $itemTitle",
+    await WhatsAppTrackingService.openTrackedChat(
+      phoneNumber: phone,
+      storeName: storeName,
+      country: WhatsAppTrackingService.resolveCountry(_selectedCountry),
+      itemTitle: itemTitle,
     );
-    final uri = Uri.parse('https://wa.me/$normalizedPhone?text=$message');
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   void _showQuickView(StoreItem item, Store? store) {
@@ -255,9 +306,9 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
                       child: CachedNetworkImage(
                         imageUrl: item.imageUrl,
                         fit: BoxFit.cover,
-                        placeholder: (_, __) =>
+                        placeholder: (context, url) =>
                             Container(color: Colors.grey.shade200),
-                        errorWidget: (_, __, ___) =>
+                        errorWidget: (context, url, error) =>
                             const Icon(Icons.image_not_supported),
                       ),
                     ),
@@ -301,11 +352,12 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
                           ? (store?.phone ?? '')
                           : item.sellerPhone,
                       itemTitle: item.name,
+                      storeName: (store?.name ?? item.brandName).trim(),
                     ),
                     icon: const Icon(Icons.chat),
-                    label: const Text(
-                      'Order via WhatsApp',
-                      style: TextStyle(
+                    label: Text(
+                      AppTranslations.text(context, 'order_via_whatsapp'),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -322,9 +374,22 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
 
   String? _mapSelectedCategoryToStoredValue(String? selected) {
     if (selected == null) return null;
-    if (selected == 'Electronics') return 'Electronics & Mobiles';
-    if (selected == 'Kids') return 'Kids & Babies';
-    return selected;
+    switch (selected) {
+      case 'category_mens_shoes':
+        return 'Men\'s Shoes';
+      case 'category_women_home_world':
+        return 'Women & Home World';
+      case 'category_electronics':
+        return 'Electronics & Mobiles';
+      case 'category_kids':
+        return 'Kids & Babies';
+      case 'category_supermarket':
+        return 'Supermarket';
+      case 'category_services':
+        return 'Services';
+      default:
+        return null;
+    }
   }
 
   Widget _buildCategoriesSection() {
@@ -342,17 +407,18 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 10),
             itemCount: _categories.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            separatorBuilder: (context, index) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
               final category = _categories[index];
-              final categoryName = category['name'] as String;
+              final categoryId = category['id'] as String;
+              final categoryName = AppTranslations.text(context, categoryId);
               final categoryIcon = category['icon'] as IconData;
-              final isSelected = _selectedCategory == categoryName;
+              final isSelected = _selectedCategory == categoryId;
 
               return GestureDetector(
                 onTap: () {
                   setState(() {
-                    _selectedCategory = isSelected ? null : categoryName;
+                    _selectedCategory = isSelected ? null : categoryId;
                   });
                 },
                 child: SizedBox(
@@ -412,26 +478,33 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
               _selectedCategory,
             );
 
+            final bool servicesSelected = mappedCategory == 'Services';
+
             List<StoreItem> filteredItems = allItems.where((item) {
+              final itemCategory = item.itemCategory.trim();
+
+              if (itemCategory == 'Services' && !servicesSelected) {
+                return false;
+              }
+
               final matchesSearch =
                   _searchQuery.isEmpty ||
                   item.name.toLowerCase().contains(_searchQuery);
 
-              final itemCategory = item.itemCategory.trim();
               final matchesCategory =
                   mappedCategory == null || itemCategory == mappedCategory;
 
               return matchesSearch && matchesCategory;
             }).toList();
 
-            if (_selectedQuickFilter == 'New') {
-              filteredItems = filteredItems.reversed.toList();
-            }
-
             if (filteredItems.isEmpty) {
-              return const SizedBox(
+              return SizedBox(
                 height: 220,
-                child: Center(child: Text('No products found')),
+                child: Center(
+                  child: Text(
+                    AppTranslations.text(context, 'no_products_found'),
+                  ),
+                ),
               );
             }
 
@@ -458,6 +531,7 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
                         ? (store?.phone ?? '')
                         : item.sellerPhone,
                     itemTitle: item.name,
+                    storeName: (store?.name ?? item.brandName).trim(),
                   ),
                 );
               },
@@ -468,15 +542,162 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
     );
   }
 
+  Widget _buildMiddleItemsSection() {
+    return StreamBuilder<List<Store>>(
+      stream: _storesStream(),
+      builder: (context, storesSnapshot) {
+        final stores = storesSnapshot.data ?? [];
+        final storesByUid = <String, Store>{for (final s in stores) s.uid: s};
+
+        return StreamBuilder<List<StoreItem>>(
+          stream: _itemsStream(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SizedBox(height: 220, child: ProductShimmerWidget());
+            }
+
+            final allItems = snapshot.data ?? [];
+            final middleItems = allItems
+                .where(
+                  (item) =>
+                      item.itemCategory.trim().toLowerCase() != 'services',
+                )
+                .toList();
+
+            if (middleItems.isEmpty) {
+              return const SizedBox.shrink();
+            }
+
+            final visibleCount = _middleSectionVisibleCount > middleItems.length
+                ? middleItems.length
+                : _middleSectionVisibleCount;
+            final displayedItems = middleItems.take(visibleCount).toList();
+            final hasMore = visibleCount < middleItems.length;
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              child: Column(
+                children: [
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: displayedItems.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 6,
+                          crossAxisSpacing: 6,
+                          childAspectRatio: 0.78,
+                        ),
+                    itemBuilder: (context, index) {
+                      final item = displayedItems[index];
+                      final store = storesByUid[item.storeUid];
+                      return ProductCard(
+                        item: item,
+                        storeName: store?.name ?? item.brandName,
+                        compact: true,
+                        onTap: () => _showQuickView(item, store),
+                        onWhatsAppTap: () => _openWhatsApp(
+                          phone: item.sellerPhone.isEmpty
+                              ? (store?.phone ?? '')
+                              : item.sellerPhone,
+                          itemTitle: item.name,
+                          storeName: (store?.name ?? item.brandName).trim(),
+                        ),
+                      );
+                    },
+                  ),
+                  if (middleItems.length > 2)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: TextButton(
+                        onPressed: () {
+                          setState(() {
+                            if (hasMore) {
+                              _middleSectionVisibleCount += 2;
+                            } else {
+                              _middleSectionVisibleCount = 2;
+                            }
+                          });
+                        },
+                        child: Text(
+                          hasMore ? 'Show more' : 'Show less',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildCountryFilterSection() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppUiTokens.pageHorizontalPadding - 2,
+        8,
+        AppUiTokens.pageHorizontalPadding - 2,
+        6,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DropdownButtonFormField<String>(
+            initialValue: _selectedCountry,
+            decoration: InputDecoration(
+              labelText: AppTranslations.text(context, 'select_country'),
+              hintText: AppTranslations.text(context, 'select_country'),
+              prefixIcon: const Icon(Icons.public),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
+            ),
+            items: _countryNames.map((country) {
+              final translationKey = _countryTranslationKeyByName[country];
+              final localizedCountry = translationKey == null
+                  ? country
+                  : AppTranslations.text(context, translationKey);
+
+              return DropdownMenuItem<String>(
+                value: country,
+                child: Text(localizedCountry),
+              );
+            }).toList(),
+            onChanged: (value) {
+              if (value == null) return;
+              setState(() {
+                _selectedCountry = value;
+                _selectedCurrency = currencyCodeForCountry(value);
+              });
+              sharedPreferences?.setString('country', value);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBodyContent() {
     return Column(
       children: [
+        _buildCountryFilterSection(),
         Expanded(
           child: ListView(
             padding: EdgeInsets.zero,
             children: [
-              const SizedBox(height: 8),
-              _buildQuickFilters(),
+              const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: _buildCategoriesSection(),
@@ -485,21 +706,126 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
                 StreamBuilder<List<StoreItem>>(
                   stream: _featuredItemsStream(),
                   builder: (context, snapshot) {
-                    return FeaturedSliderWidget(
-                      featuredItems: snapshot.data ?? [],
-                      isLoading:
-                          snapshot.connectionState == ConnectionState.waiting,
-                      onTapItem: (item) {
-                        final store = Store(
-                          uid: item.storeUid,
-                          name: item.brandName.isEmpty
-                              ? 'Store'
-                              : item.brandName,
-                          imageUrl: item.imageUrl,
-                          phone: item.sellerPhone,
-                        );
-                        _showQuickView(item, store);
-                      },
+                    final featured = (snapshot.data ?? [])
+                        .where((item) => item.itemCategory.trim() != 'Services')
+                        .toList();
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const FeaturedSliderWidget(
+                        featuredItems: [],
+                        isLoading: true,
+                        currentCountry: 'Global',
+                      );
+                    }
+
+                    if (featured.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return Column(
+                      children: [
+                        _buildSectionHeader(
+                          title: AppTranslations.text(context, 'featured'),
+                          icon: Icons.local_fire_department_outlined,
+                          color: Colors.deepOrange,
+                        ),
+                        StreamBuilder<List<Store>>(
+                          stream: _storesStream(),
+                          builder: (context, storesSnapshot) {
+                            final storesByUid = {
+                              for (final s in (storesSnapshot.data ?? []))
+                                s.uid: s,
+                            };
+                            return FeaturedSliderWidget(
+                              title: AppTranslations.text(context, 'featured'),
+                              showTitle: false,
+                              featuredItems: featured,
+                              currentCountry:
+                                  WhatsAppTrackingService.resolveCountry(
+                                    _selectedCountry,
+                                  ),
+                              resolveWhatsAppPhone: (item) {
+                                final store = storesByUid[item.storeUid];
+                                return item.sellerPhone.isEmpty
+                                    ? (store?.phone ?? '')
+                                    : item.sellerPhone;
+                              },
+                              onTapItem: (item) {
+                                final store = storesByUid[item.storeUid];
+                                _showQuickView(item, store);
+                              },
+                            );
+                          },
+                        ),
+                        _buildMiddleItemsSection(),
+                      ],
+                    );
+                  },
+                ),
+              if (_shouldShowFeaturedSlider)
+                StreamBuilder<List<StoreItem>>(
+                  stream: _featuredItemsStream(),
+                  builder: (context, snapshot) {
+                    final servicesItems = (snapshot.data ?? [])
+                        .where(
+                          (item) =>
+                              item.itemCategory.trim().toLowerCase() ==
+                              'services',
+                        )
+                        .toList();
+
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const SizedBox.shrink();
+                    }
+
+                    if (servicesItems.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return Column(
+                      children: [
+                        _buildSectionHeader(
+                          title: AppTranslations.text(
+                            context,
+                            'category_services',
+                          ),
+                          icon: Icons.miscellaneous_services,
+                          color: const Color(0xFF3D8CFF),
+                          alignRight: true,
+                        ),
+                        StreamBuilder<List<Store>>(
+                          stream: _storesStream(),
+                          builder: (context, storesSnapshot) {
+                            final storesByUid = {
+                              for (final s in (storesSnapshot.data ?? []))
+                                s.uid: s,
+                            };
+                            return FeaturedSliderWidget(
+                              title: AppTranslations.text(
+                                context,
+                                'category_services',
+                              ),
+                              showTitle: false,
+                              showPrice: false,
+                              showStoreName: false,
+                              featuredItems: servicesItems,
+                              currentCountry:
+                                  WhatsAppTrackingService.resolveCountry(
+                                    _selectedCountry,
+                                  ),
+                              resolveWhatsAppPhone: (item) {
+                                final store = storesByUid[item.storeUid];
+                                return item.sellerPhone.isEmpty
+                                    ? (store?.phone ?? '')
+                                    : item.sellerPhone;
+                              },
+                              onTapItem: (item) {
+                                final store = storesByUid[item.storeUid];
+                                _showQuickView(item, store);
+                              },
+                            );
+                          },
+                        ),
+                      ],
                     );
                   },
                 ),
@@ -519,7 +845,7 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
                 );
               },
               child: Text(
-                'إنشاء حساب الآن',
+                AppTranslations.text(context, 'create_account_now'),
                 style: TextStyle(
                   color: _hasSavedUser ? Colors.grey : Colors.blue,
                   fontWeight: FontWeight.w600,
@@ -542,7 +868,7 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppUiTokens.pageBackground,
       appBar: AppBar(
         backgroundColor: const Color(0xFFBEEAE7),
         elevation: 0,
@@ -568,6 +894,7 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
 class ProductCard extends StatelessWidget {
   final StoreItem item;
   final String storeName;
+  final bool compact;
   final VoidCallback onTap;
   final VoidCallback onWhatsAppTap;
 
@@ -575,6 +902,7 @@ class ProductCard extends StatelessWidget {
     super.key,
     required this.item,
     required this.storeName,
+    this.compact = false,
     required this.onTap,
     required this.onWhatsAppTap,
   });
@@ -607,7 +935,7 @@ class ProductCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(compact ? 7 : 8),
           boxShadow: const [
             BoxShadow(
               color: Color(0x14000000),
@@ -617,18 +945,23 @@ class ProductCard extends StatelessWidget {
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
+          padding: EdgeInsets.fromLTRB(
+            compact ? 6 : 8,
+            compact ? 6 : 8,
+            compact ? 6 : 8,
+            compact ? 8 : 10,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                flex: 6,
+                flex: compact ? 5 : 6,
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(compact ? 6 : 8),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(compact ? 5 : 6),
                   ),
                   child: AspectRatio(
                     aspectRatio: 1,
@@ -637,9 +970,9 @@ class ProductCard extends StatelessWidget {
                       child: CachedNetworkImage(
                         imageUrl: item.imageUrl,
                         fit: BoxFit.contain,
-                        placeholder: (_, __) =>
+                        placeholder: (context, url) =>
                             Container(color: Colors.grey.shade300),
-                        errorWidget: (_, __, ___) => const Icon(
+                        errorWidget: (context, url, error) => const Icon(
                           Icons.image_not_supported,
                           color: Colors.grey,
                         ),
@@ -648,50 +981,60 @@ class ProductCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: compact ? 6 : 8),
               Text(
-                'From ${storeName.isEmpty ? 'Store' : storeName}',
+                AppTranslations.textWithParams(context, 'from_store', {
+                  'store': storeName.isEmpty
+                      ? AppTranslations.text(context, 'store')
+                      : storeName,
+                }),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 10.5, color: Colors.black54),
+                style: TextStyle(
+                  fontSize: compact ? 9 : 10.5,
+                  color: Colors.black54,
+                ),
               ),
-              const SizedBox(height: 3),
+              SizedBox(height: compact ? 2 : 3),
               Text(
                 item.name,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 13,
+                style: TextStyle(
+                  fontSize: compact ? 11 : 13,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: compact ? 3 : 4),
               _buildRatingRow(),
-              const SizedBox(height: 4),
+              SizedBox(height: compact ? 3 : 4),
               Text(
                 '${item.currency.isEmpty ? '₪' : item.currency} ${item.itemPrice.isEmpty ? '0' : item.itemPrice}',
-                style: const TextStyle(
-                  fontSize: 18,
+                style: TextStyle(
+                  fontSize: compact ? 14.5 : 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: compact ? 1 : 2),
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      '✓ FREE Delivery',
-                      style: TextStyle(fontSize: 10.5, color: Colors.black54),
+                      AppTranslations.text(context, 'quality_high'),
+                      style: TextStyle(
+                        fontSize: compact ? 9 : 10.5,
+                        color: Colors.black54,
+                      ),
                     ),
                   ),
                   IconButton(
                     onPressed: onWhatsAppTap,
                     visualDensity: VisualDensity.compact,
                     constraints: const BoxConstraints(),
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.chat,
                       color: Color(0xFF25D366),
-                      size: 22,
+                      size: compact ? 18 : 22,
                     ),
                   ),
                 ],

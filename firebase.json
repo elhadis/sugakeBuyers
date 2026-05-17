@@ -1,1 +1,38 @@
-{"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"sugackselers","configurations":{"android":"1:96904726096:android:ad9199e1daa3c1ee7e7355","ios":"1:96904726096:ios:3b8393fc466741c77e7355","macos":"1:96904726096:ios:3b8393fc466741c77e7355","web":"1:96904726096:web:28ae07426f810de07e7355","windows":"1:96904726096:web:28ae07426f810de07e7355"}}},"android":{"default":{"projectId":"sugackselers","appId":"1:96904726096:android:ad9199e1daa3c1ee7e7355","fileOutput":"android/app/google-services.json"}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "sugackselers",
+          "configurations": {
+            "android": "1:96904726096:android:ad9199e1daa3c1ee7e7355",
+            "ios": "1:96904726096:ios:3b8393fc466741c77e7355",
+            "macos": "1:96904726096:ios:3b8393fc466741c77e7355",
+            "web": "1:96904726096:web:28ae07426f810de07e7355",
+            "windows": "1:96904726096:web:28ae07426f810de07e7355"
+          }
+        }
+      },
+      "android": {
+        "default": {
+          "projectId": "sugackselers",
+          "appId": "1:96904726096:android:ad9199e1daa3c1ee7e7355",
+          "fileOutput": "android/app/google-services.json"
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}

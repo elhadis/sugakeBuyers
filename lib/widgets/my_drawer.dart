@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sugacke/authScreens/my_auth.dart';
 import 'package:sugacke/global/global.dart';
 import 'package:sugacke/mainScreens/my_hmoe_screen.dart';
+import 'package:sugacke/services/user_session_service.dart';
 
 class MyDrawer extends StatefulWidget {
   const MyDrawer({super.key});
@@ -20,6 +21,19 @@ class _MyDrawerState extends State<MyDrawer> {
     super.initState();
     userName = sharedPreferences?.getString("name") ?? "Guest";
     userPhotoUrl = sharedPreferences?.getString("photoUrl") ?? "";
+
+    // Registration writes prefs; login + cold start only set Firebase session unless
+    // we load `sellers` / `users` into SharedPreferences (see [UserSessionService]).
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      UserSessionService.loadSellerIntoSharedPreferences(user).then((_) {
+        if (!mounted) return;
+        setState(() {
+          userName = sharedPreferences?.getString("name") ?? "Guest";
+          userPhotoUrl = sharedPreferences?.getString("photoUrl") ?? "";
+        });
+      });
+    }
   }
 
   @override
@@ -115,7 +129,10 @@ class _MyDrawerState extends State<MyDrawer> {
                     style: TextStyle(color: Colors.white),
                   ),
                   onTap: () {
-                    MaterialPageRoute(builder: (c) => const MyHmoeScreen());
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (c) => const MyHmoeScreen()),
+    );
                   },
                 ),
                 ListTile(
@@ -124,8 +141,10 @@ class _MyDrawerState extends State<MyDrawer> {
                     "Logout",
                     style: TextStyle(color: Colors.white),
                   ),
-                  onTap: () {
-                    FirebaseAuth.instance.signOut();
+                  onTap: () async {
+                    await FirebaseAuth.instance.signOut();
+                    await UserSessionService.clearSellerSession();
+                    if (!context.mounted) return;
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (c) => const MyAuth()),

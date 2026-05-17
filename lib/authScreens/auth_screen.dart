@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sugacke/l10n/translations.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -41,8 +42,8 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() => _isSubmitting = false);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Details submitted successfully 🎉'),
+      SnackBar(
+        content: Text(AppTranslations.text(context, 'save')),
         behavior: SnackBarBehavior.floating,
       ),
     );

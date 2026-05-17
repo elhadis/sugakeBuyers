@@ -1,10 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:sugacke/global/global.dart';
 import 'package:sugacke/itemsScreens/items_screen.dart';
+import 'package:sugacke/l10n/translations.dart';
 import 'package:sugacke/models/brans.dart';
 
 class BransUiDesingWidget extends StatelessWidget {
-   final Brands? model;
+  final Brands? model;
   final BuildContext? context;
   final Future<void> Function()? onDeleteConfirmed;
 
@@ -15,32 +19,76 @@ class BransUiDesingWidget extends StatelessWidget {
     this.onDeleteConfirmed,
   });
 
+  Future<void> deleteBrand() async {
+    final String? uid = sharedPreferences?.getString("uid");
+    final String? brandId = model?.brandId?.toString();
+    final String? imageUrl = model?.thumbnailUrl?.toString();
+
+    if (uid == null || uid.isEmpty || brandId == null || brandId.isEmpty) {
+      throw Exception("Missing uid or brandId. Cannot delete brand.");
+    }
+
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      try {
+        await FirebaseStorage.instance.refFromURL(imageUrl).delete();
+      } catch (_) {
+        // Ignore storage delete failure so Firestore delete still proceeds.
+      }
+    }
+
+    await FirebaseFirestore.instance
+        .collection("sellers")
+        .doc(uid)
+        .collection("brands")
+        .doc(brandId)
+        .delete();
+  }
+
   Future<void> _showDeleteConfirmationDialog(BuildContext context) async {
     final bool? shouldDelete = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Delete Brand'),
-          content: const Text(
-            'Are you sure you want to delete this brand? This action cannot be undone.',
-          ),
+          title: Text(AppTranslations.text(context, 'delete_brand')),
+          content: Text(AppTranslations.text(context, 'delete_brand_confirm')),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
+              child: Text(AppTranslations.text(context, 'cancel')),
             ),
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
               style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Delete'),
+              child: Text(AppTranslations.text(context, 'delete')),
             ),
           ],
         );
       },
     );
 
-    if (shouldDelete == true && onDeleteConfirmed != null) {
-      await onDeleteConfirmed!.call();
+    if (shouldDelete == true) {
+      try {
+        await deleteBrand();
+        if (onDeleteConfirmed != null) {
+          await onDeleteConfirmed!.call();
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppTranslations.textWithParams(
+                  context,
+                  'failed_delete_brand',
+                  {'error': e.toString()},
+                ),
+              ),
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -52,11 +100,7 @@ class BransUiDesingWidget extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (c) => ItemsScreen(
-            model:model,
-          )),
-          
-          
+          MaterialPageRoute(builder: (c) => ItemsScreen(model: model)),
         );
       },
       child: Card(
@@ -91,7 +135,8 @@ class BransUiDesingWidget extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      model?.brandTitle?.toString() ?? 'Untitled Brand',
+                      model?.brandTitle?.toString() ??
+                          AppTranslations.text(context, 'untitled_brand'),
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,

@@ -30,27 +30,33 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: any
-  firebase_core: any
-  firebase_auth: any
-  cloud_firestore: any
-  firebase_storage: any
-  firebase_messaging: any
-  image_picker: any
-  fluttertoast: any
-  shared_preferences: any
-  flutter_staggered_grid_view: any
-  cached_network_image: any
-  flutter_image_compress: any
+  cupertino_icons: ^1.0.9
+  firebase_core: ^3.15.2
+  firebase_auth: ^5.7.0
+  firebase_analytics: ^11.6.0
+  cloud_firestore: ^5.6.12
+  firebase_storage: ^12.4.10
+  firebase_messaging: ^15.2.10
+  flutter_local_notifications: ^17.2.4
+  image_picker: ^1.2.2
+  fluttertoast: ^9.0.0
+  shared_preferences: ^2.5.5
+  flutter_staggered_grid_view: ^0.7.0
+  cached_network_image: ^3.4.1
+  flutter_image_compress: ^2.4.0
   url_launcher: ^6.3.2
   intl: ^0.20.2
   carousel_slider: ^5.1.2
   shimmer: ^3.0.0
   google_nav_bar: ^5.0.7
   speech_to_text: ^7.3.0
+  path_provider: ^2.1.4
+  font_awesome_flutter: ^11.0.0
 
   
   
@@ -66,7 +72,6 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
-  fluttertoast: ^9.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -110,7 +115,8 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
-flutter_icons:
+flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "images/logo.png"
+  image_path: images/logo.png
+  remove_alpha_ios: true
