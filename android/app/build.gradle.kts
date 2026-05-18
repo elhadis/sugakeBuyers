@@ -29,10 +29,10 @@ android {
         // Use your registered Firebase Application ID
         applicationId = "com.ragabaat.sugacke"
 
-        // Flutter 3.22+ requires minSdk 23
+        // Set flutter.minSdkVersion=21 in android/local.properties (not rewritten by Flutter migration).
         minSdk = flutter.minSdkVersion
 
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 34
         versionCode = flutterVersionCode
         versionName = flutterVersionName
 

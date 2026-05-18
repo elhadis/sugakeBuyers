@@ -89,6 +89,7 @@ class AppTranslations {
       'country_usa': 'USA',
       'country_canada': 'Canada',
       'country_india': 'India',
+      'country_libya': 'Libya',
       'app_title': 'Sugake',
       'my_brands': 'My Brands',
       'my_items': 'My Items',
@@ -122,7 +123,8 @@ class AppTranslations {
       'mark_product_featured': 'Mark this product as featured (max 4)',
       'select_image_fill_fields': 'Please select image and fill all fields',
       'max_featured_items': 'Maximum of 4 featured items allowed.',
-      'upload_failed_retry': 'Upload failed. Please check network and retry.\n{error}',
+      'upload_failed_retry':
+          'Upload failed. Please check network and retry.\n{error}',
       'delete_brand': 'Delete Brand',
       'delete': 'Delete',
       'delete_brand_confirm':
@@ -246,6 +248,7 @@ class AppTranslations {
       'country_usa': 'الولايات المتحدة',
       'country_canada': 'كندا',
       'country_india': 'الهند',
+      'country_libya': 'ليبيا',
       'app_title': 'سوقك',
       'my_brands': 'ماركاتي',
       'my_items': 'عناصري',
@@ -279,7 +282,8 @@ class AppTranslations {
       'mark_product_featured': 'تمييز هذا المنتج كمميز (الحد الأقصى 4)',
       'select_image_fill_fields': 'يرجى اختيار صورة وملء جميع الحقول',
       'max_featured_items': 'الحد الأقصى 4 عناصر مميزة.',
-      'upload_failed_retry': 'فشل الرفع. يرجى التحقق من الشبكة والمحاولة مرة أخرى.\n{error}',
+      'upload_failed_retry':
+          'فشل الرفع. يرجى التحقق من الشبكة والمحاولة مرة أخرى.\n{error}',
       'delete_brand': 'حذف الماركة',
       'delete': 'حذف',
       'delete_brand_confirm':
@@ -300,8 +304,10 @@ class AppTranslations {
       'please_enter_email': 'يرجى إدخال بريدك الإلكتروني',
       'please_enter_email_dot': 'يرجى إدخال بريدك الإلكتروني.',
       'please_enter_valid_email': 'يرجى إدخال بريد إلكتروني صالح',
-      'please_enter_valid_email_address': 'يرجى إدخال عنوان بريد إلكتروني صالح.',
-      'password_reset_sent': 'تم إرسال رسالة إعادة تعيين كلمة المرور. تحقق من بريدك.',
+      'please_enter_valid_email_address':
+          'يرجى إدخال عنوان بريد إلكتروني صالح.',
+      'password_reset_sent':
+          'تم إرسال رسالة إعادة تعيين كلمة المرور. تحقق من بريدك.',
       'email_not_valid': 'عنوان البريد الإلكتروني غير صالح.',
       'no_account_for_email': 'لا يوجد حساب لهذا البريد الإلكتروني.',
       'network_error_check_connection': 'خطأ في الشبكة. تحقق من اتصالك.',

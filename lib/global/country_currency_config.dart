@@ -20,6 +20,7 @@ const Map<String, String> countryToCurrency = {
   'USA': 'USD',
   'Canada': 'CAD',
   'India': 'INR',
+  'Libya': 'LYD',
 };
 
 List<String> getCountryNamesSorted() {

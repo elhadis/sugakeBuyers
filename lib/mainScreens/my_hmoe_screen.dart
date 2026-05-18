@@ -473,6 +473,22 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
               return const SizedBox(height: 320, child: ProductShimmerWidget());
             }
 
+            if (snapshot.hasError) {
+              return SizedBox(
+                height: 220,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      'Unable to load data right now. Please check internet connection and try again.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.red.shade700),
+                    ),
+                  ),
+                ),
+              );
+            }
+
             final allItems = snapshot.data ?? [];
             final mappedCategory = _mapSelectedCategoryToStoredValue(
               _selectedCategory,
@@ -498,11 +514,16 @@ class _MyHmoeScreenState extends State<MyHmoeScreen> {
             }).toList();
 
             if (filteredItems.isEmpty) {
+              final emptyMessage = servicesSelected
+                  ? 'No services available right now.'
+                  : AppTranslations.text(context, 'no_products_found');
+
               return SizedBox(
                 height: 220,
                 child: Center(
-                  child: Text(
-                    AppTranslations.text(context, 'no_products_found'),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(emptyMessage, textAlign: TextAlign.center),
                   ),
                 ),
               );
